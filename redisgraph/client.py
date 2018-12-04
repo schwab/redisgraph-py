@@ -120,12 +120,12 @@ class Graph(object):
     def commit_merge(self):
         """
         Create the entire graph without duplication.
-        Cannot use the same pattern as commit because MERGE does not support > 1 node or edge at a time.
+        Makes one call per node or edge in the graph since MERGE does not support > 1 item at a time.
         """
         try:
             results = []
             query = "MERGE "
-            for _, node in self.node.items():
+            for _, node in self.nodes.items():
                 query = str(node) 
                 results.append(self.query(query))
             for edge in self.edges:
