@@ -117,12 +117,27 @@ class Graph(object):
         assert self.nodes[edge.src_node.alias] is not None and self.nodes[edge.dest_node.alias] is not None
         self.edges.append(edge)
 
-    def commit(self):
+    def commit_merge(self):
         """
-        Create entire graph.
+        Create the entire graph without duplication.
+        Cannot use the same pattern as commit because MERGE does not support > 1 node or edge at a time.
         """
+        try:
+            results = []
+            query = "MERGE "
+            for _, node in self.node.items():
+                query = str(node) 
+                results.append(self.query(query))
+            for edge in self.edges:
+                query = str(edge)
+                results.append(self.query(query))
+            # merge results
+            return results
 
-        query = 'CREATE '
+        except Exception as err:
+            return "%s, %s" % (err.__doc__, query)
+    
+    def add_graph_elements_to_query(self, query):
         for _, node in self.nodes.items():
             query += str(node) + ','
 
@@ -132,7 +147,14 @@ class Graph(object):
         # Discard leading comma.
         if query[-1] is ',':
             query = query[:-1]
+        return query 
 
+    def commit(self):
+        """
+        Create entire graph.
+        """
+        query = 'CREATE '
+        query = self.add_graph_elements_to_query(query)
         return self.query(query)
 
     def query(self, q):
